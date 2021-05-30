@@ -1,3 +1,5 @@
+#ifndef MTX_HPP
+#define MTX_HPP
 #include <bits/stdc++.h>
 #pragma GCC optimize(3)
 #define max_thread std::thread::hardware_concurrency()
@@ -194,3 +196,4 @@ public:
       std::cout << "dimension: {" << dim0 << ", " << dim1 << "}\n";
   }
 };
+#endif
