@@ -209,12 +209,10 @@ public:
   constexpr T tr() const noexcept {
     if (is_square()) {
       T ans = 0;
-      auto it = end + dim0;
-      auto tmp = dim0 + 1;
+      auto it = end;
       do {
-        it -= tmp;
-        ans += *it;
-      } while (it > begin);
+        ans += *--it;
+      } while (it -= dim0,it > begin);
       return ans;
     }
     std::cerr << "Not a square matrix!\n";
@@ -252,11 +250,12 @@ public:
   auto col(auto c) const noexcept {
     if (c > -1 && c < dim1) {
       M ans(dim0, 1);
-      auto it = end - dim1 + c;
+      auto tmp = dim1 - 1;
+      auto it = end - tmp + c;
       auto it_a = ans.end;
       do {
-        *--it_a = *it;
-      } while (it -= dim1, it > begin - 1);
+        *--it_a = *--it;
+      } while (it -= tmp, it > begin);
       return ans;
     }
     std::cerr << "Out of bound!\n";
@@ -271,7 +270,7 @@ public:
     std::cerr << "Not single value.\n";
     exit(6);
   }
-  
+
   /* debug tools */
   void dims() const noexcept {
     std::cout << "dimension: {" << dim0 << ", " << dim1 << "}\n";
