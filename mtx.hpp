@@ -1,16 +1,21 @@
 #ifndef MTX_HPP
 #define MTX_HPP
 #include <cmath>
+#include <cstring>
 #include <iostream>
 #include <memory>
-#pragma GCC optimize(3)
+//#pragma GCC optimize(3)
 // const auto max_thread = std::thread::hardware_concurrency();
 
 class M {
-  using T = float;        // element type
-  std::unique_ptr<T[]> v; // container
+  using T = float; // element type
+  /// some tricky random bugs about ownership happened when using unique pointer
+  /// I cannot solve them temporarily so that naked pointers are used insteadly
+  //  std::unique_ptr<T[]> v; // container
+  T *v, *begin, *end;
   int dim0, dim1, dim;    // dimension
-  T *begin, *end;
+  bool to_destory=true; // avoid double free (used for naked pointer only)
+
   /* tools */
   constexpr bool same_dim(const M &m) const noexcept {
     return dim0 == m.dim0 && dim1 == m.dim1;
@@ -26,10 +31,12 @@ class M {
   }
   constexpr bool is_square() const noexcept { return dim0 == dim1; }
   constexpr bool is_single() const noexcept { return dim0 == 1 && dim1 == 1; }
+
   /* private helper */
   /// \brief transpose
   M _t() const noexcept {
     M ans(dim1, dim0);
+    ans.to_destory = false;
     auto it = end;
     auto i = dim0 - 1, tmp = dim - dim0, s = tmp;
     auto v_a = ans.begin;
@@ -44,12 +51,17 @@ class M {
 public:
   /* constructors */
   inline M() {}
+  ~M() {
+    if (to_destory)
+      delete[] v;
+  }
   M(auto dim0, auto dim1, T init)
       : dim0(dim0), dim1(dim1), v(new T[dim0 * dim1]) {
     if (init != 0) {
-      this->dim = dim0 * dim1;
-      this->begin = v.get(), this->end = begin + this->dim;
-      auto it = this->end;
+      dim = dim0 * dim1;
+      begin = v;
+      end = begin + dim;
+      auto it = end;
       do {
         *--it = init;
       } while (it > begin);
@@ -57,22 +69,24 @@ public:
   }
   inline M(auto dim0, auto dim1)
       : dim0(dim0), dim1(dim1), v(new T[dim0 * dim1]) {
-    this->dim = dim0 * dim1;
-    this->begin = v.get(), this->end = begin + this->dim;
+    dim = dim0 * dim1;
+    begin = v;
+    end = begin + dim;
   }
   // debug only
   M(auto dim0, auto dim1, const std::initializer_list<T> m)
       : dim0(dim0), dim1(dim1), v(new T[dim0 * dim1]) {
-    this->dim = dim0 * dim1;
-    this->begin = v.get(), this->end = begin + this->dim;
-    auto it = this->begin;
+    dim = dim0 * dim1;
+    begin = v;
+    end = begin + dim;
+    auto it = begin;
     for (auto &i : m)
       *it++ = i;
   }
-
   /* deep copy */
   M clone() const noexcept {
     M ans(dim0, dim1);
+    ans.to_destory = false;
     auto it = end;
     auto it_a = ans.end;
     do {
@@ -85,6 +99,7 @@ public:
   M operator+(const M &m) const noexcept {
     if (same_dim(m)) {
       M ans(dim0, dim1);
+      ans.to_destory = false;
       auto it = end, it_m = m.end;
       auto it_a = ans.end;
       do {
@@ -97,6 +112,7 @@ public:
   }
   M operator+(const T n) const noexcept {
     M ans(dim0, dim1);
+    ans.to_destory = false;
     auto it = end;
     auto it_a = ans.end;
     do {
@@ -107,6 +123,7 @@ public:
   M operator-(const M &m) const noexcept {
     if (same_dim(m)) {
       M ans(dim0, dim1);
+      ans.to_destory = false;
       auto it = end, it_m = m.end;
       auto it_a = ans.end;
       do {
@@ -119,6 +136,7 @@ public:
   }
   M operator-(const T n) const noexcept {
     M ans(dim0, dim1);
+    ans.to_destory = false;
     auto it = end;
     auto it_a = ans.end;
     do {
@@ -129,14 +147,16 @@ public:
   M operator*(const M &m) const noexcept {
     if (dim1 == m.dim0) {
       M ans(dim0, m.dim1);
+      ans.to_destory = false;
       auto it = end;
-      auto i = dim0 - 1, k = dim1;
+      auto i = dim0 - 1, k = dim1, j = 0;
       do {
-        auto j = m.dim1;
-        auto p_m = m.begin + j + (!k ? (--i, k = dim1 - 1) : --k) * m.dim1,
-             p_a = ans.begin + j + i * m.dim1;
+        --it;
+        j = m.dim1;
+        auto p_m = m.begin + j + (!k ? (--i, k = dim1 - 1) : --k) * j,
+             p_a = ans.begin + j + i * j;
         do {
-          *--p_a += *--it * *--p_m;
+          *--p_a += *it * *--p_m;
         } while (--j > 0);
       } while (it > begin);
       return ans;
@@ -146,6 +166,7 @@ public:
   }
   M operator*(const T n) const noexcept {
     M ans(dim0, dim1);
+    ans.to_destory = false;
     auto it = end;
     auto it_a = ans.end;
     do {
@@ -173,16 +194,17 @@ public:
   }
   M t() const noexcept {
     if (is_vec()) {
-      auto ans = this->clone();
+      auto ans = this->clone();      
       std::swap(ans.dim0, ans.dim1);
       return ans;
     } else
       return _t();
   }
-  /// \brief hadamard product
+  //  /// \brief hadamard product
   M h_p(const M &m) const noexcept {
     if (same_dim(m)) {
       M ans(dim0, dim1);
+      ans.to_destory = false;
       auto it = end, it_m = m.end;
       auto it_a = ans.end;
       do {
@@ -193,7 +215,7 @@ public:
     std::cerr << "Dimension is mismatched!\n";
     exit(2);
   }
-  //  M k_p(const M &m) const noexcept { return *this; }
+  //  //  M k_p(const M &m) const noexcept { return *this; }
 
   /* matrix property */
   constexpr T L2() const noexcept {
@@ -212,7 +234,7 @@ public:
       auto it = end;
       do {
         ans += *--it;
-      } while (it -= dim0,it > begin);
+      } while (it -= dim0, it > begin);
       return ans;
     }
     std::cerr << "Not a square matrix!\n";
@@ -238,6 +260,7 @@ public:
   auto row(auto r) const noexcept {
     if (r > -1 && r < dim0) {
       M ans(1, dim1);
+      ans.to_destory = false;
       auto head = begin + r * dim1, it = head + dim1, it_a = ans.end;
       do {
         *--it_a = *--it;
@@ -250,6 +273,7 @@ public:
   auto col(auto c) const noexcept {
     if (c > -1 && c < dim1) {
       M ans(dim0, 1);
+      ans.to_destory = false;
       auto tmp = dim1 - 1;
       auto it = end - tmp + c;
       auto it_a = ans.end;
@@ -264,7 +288,7 @@ public:
   constexpr auto at(auto x, auto y) const noexcept {
     return begin[x * dim1 + y];
   }
-  constexpr T unwrap() const noexcept {
+  T unwrap() const noexcept {
     if (is_single())
       return *begin;
     std::cerr << "Not single value.\n";
@@ -278,13 +302,13 @@ public:
   void display() const noexcept {
     auto it = begin;
     auto i = 0;
-    while (it < end) {
-      std::cout << *it++ << " ";
+    do {
+      std::cout << *it << " ";
       if (++i == dim1) {
         i = 0;
         std::cout << "\n";
       }
-    }
+    } while (++it < end);
   }
 };
 #endif
