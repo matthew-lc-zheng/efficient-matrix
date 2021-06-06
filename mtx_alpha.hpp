@@ -47,7 +47,7 @@ public:
   /* constructors */
   inline M() {}
   M(auto dim0, auto dim1, T init)
-      : __dim0(dim0), __dim1(dim1), __v(std::make_unique<T[]>(dim0 * dim1)) {
+      : __dim0(dim0), __dim1(dim1), __v(new T[dim0 * dim1]) {
     __dim = dim0 * dim1;
     __begin = __v.get();
     __end = __begin + __dim;
@@ -57,14 +57,21 @@ public:
     } while (it > __begin);
   }
   inline M(auto dim0, auto dim1)
-      : __dim0(dim0), __dim1(dim1), __v(std::make_unique<T[]>(dim0 * dim1)) {
+      : __dim0(dim0), __dim1(dim1), __v(new T[dim0 * dim1]) {
     __dim = dim0 * dim1;
     __begin = __v.get();
     __end = __begin + __dim;
   }
+  
+  M clone() const noexcept {
+    M ans(__dim0, __dim1);
+    std::memcpy(ans.__begin, __begin, __dim * sizeof(T));
+    return ans;
+  }
+  
   // debug only
   M(auto dim0, auto dim1, std::initializer_list<T> m)
-      : __dim0(dim0), __dim1(dim1), __v(std::make_unique<T[]>(dim0 * dim1)) {
+      : __dim0(dim0), __dim1(dim1), __v(new T[dim0 * dim1]) {
     __dim = __dim0 * __dim1;
     __begin = __v.get();
     __end = __begin + __dim;
@@ -72,11 +79,7 @@ public:
     for (auto &i : m)
       *it++ = i;
   }
-  M clone() const noexcept {
-    M ans(__dim0, __dim1);
-    std::memcpy(ans.__begin, __begin, __dim * sizeof(T));
-    return ans;
-  }
+  
   /* operator "+ - *" */
   M operator+(const M &m) const noexcept {
     if (_same_dim(m)) {
