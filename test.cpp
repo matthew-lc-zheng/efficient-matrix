@@ -1,57 +1,46 @@
-#include "mtx.hpp"
+#include "mtx_alpha.hpp"
 int main() {
   using namespace std;
-  ios::sync_with_stdio(false);
-  cin.tie(0);
+  M m1(3, 4, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12});
+  M m2(4, 3, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12});
+  M v1(1, 3, {1, 2, 3});
+  M v2(3, 1, {1, 2, 3});
+  M m3(4, 4, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16});
+  M m4(4, 4, {16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1});
 
-  auto show_vec = [](auto &&v) {
-    for (auto i : v)
-      cout << i << " ";
-    cout << endl;
-  };
-
-  Mtx m1({{1, 2, 3, 4}, {3, 4, 5, 6}, {5, 6, 7, 8}});
-  Mtx m2({{1, 2, 3}, {4, 5, 6}, {7, 8, 9}, {10, 11, 12}});
-  Mtx m3({{0, 2, 0}, {4, 0, 6}, {0, 8, 0}, {10, 0, 12}});
-  Mtx m4{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
-  Mtx v1{{1, 2, 3, 4, 5, 6}};
-  Mtx v2{{1}, {2}, {3}, {4}, {5}, {6}};
-// /*
-  std::cout << "Matrix multiplies matrix:\n";
+  cout << "clone a matrix:\n";
+  m3.clone().display();
+  cout << "\nmatrices addition:\n";
+  (m3 + m3).display();
+  cout << "\nmatrix & scalar addition:\n";
+  (m3 + 5).display();
+  cout << "\nmatrices subtraction:\n";
+  (m3 - m4).display();
+  cout << "\nmatrix & scalar subtraction:\n";
+  (m3 - 9).display();
+  cout << "\nmatrices multiplication:\n";
   (m1 * m2).display();
-  std::cout << "Matrix multiplies constant:\n";
-  (m1 * 2).display();
-  std::cout << "Matrix adds matrix:\n";
-  (m1 + m1).display();
-  std::cout << "Matrix adds constant:\n";
-  (m1 + 10).display();
-  std::cout << "Matrix subtracts matrix:\n";
-  (m2 - m3).display();
-  std::cout << "Matrix subtracts constant:\n";
-  (m2 - 5).display();
-  std::cout << "Matrix hadamard product:\n";
-  m1.h_product(m1).display();
-  std::cout << "Vector hadamard product:\n";
-  v1.h_product(v1).display();
-  std::cout << "Vector dot product (Matrix multiplication):\n";
-  (v1 * v2).display();
-  std::cout << "Unwrap matrix (1 by 1):\n";
-  cout << (v1 * v2).unwrap()<<endl;;
-  std::cout << "Matrix transpose:\n";
-  m1.transpose().display();
-  cout << "Inspect element:\n";
-  cout << m1.get(0, 0) << endl;
-  cout << "Extract row:\n";
-  show_vec(m1.row(0));
-  cout << "Extract col:\n";
-  show_vec(m1.col(0));
-  cout << "Trace of matrix:\n";
-  cout << m4.tr() << endl;
-  cout << "l2 norm of matrix:\n";
-  cout << m4.norm2() << endl;
-  cout << "L2 of matrix:\n";
-  cout << m4.L2() << endl;
-  cout << endl;
-
+  cout << "\nmatrix & scalar multiplication:\n";
+  (m1 * 10).display();
+  cout << "\nvector dot product (matrix):\n";
+  (v1 * v2).display();  
+  cout << "\nvector dot product (scalar):\n";
+  cout << v1.dot(v2) << endl;
+  cout << "\nhadamard product:\n";
+  m3.h_p(m4).display();
+  cout << "\ntranspose:\n";
+  m3.t().display();
+  cout << "\nextract row:\n";
+  m3.row(2).display();
+  cout << "\nextract column:\n";
+  m3.col(1).display();
+  cout << "\nextract element:\n";
+  cout << m3.at(1, 3) << endl;
+  cout << "\nL2 item:\n";
+  cout << v1.L2() << endl;
+  cout << "\nnorm-2:\n";
+  cout << v1.norm2() << endl;
+  cout << "\nunwrap matrix with single value:\n";
+  cout << (v1 * v2).unwrap() << endl; 
   return 0;
 }
