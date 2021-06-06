@@ -71,8 +71,7 @@ public:
     for (auto &i : m)
       *it++ = i;
   }
-  M(const M &m) noexcept {
-    std::cout << "copy!!!\n";
+  M(const M &m) noexcept {    
     dim0 = m.dim0;
     dim1 = m.dim1;
     dim = m.dim;
@@ -81,8 +80,7 @@ public:
     begin = v;
     end = begin + dim;
   }
-  M(M &&m) noexcept {
-    std::cout << "move!!!\n";
+  M(M &&m) noexcept {    
     dim0 = std::move(m.dim0);
     dim1 = std::move(m.dim1);
     dim = std::move(m.dim);
