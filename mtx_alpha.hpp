@@ -218,22 +218,7 @@ public:
     std::cerr << "Not a square matrix!\n";
     exit(4);
   }
-  // to do
-  // *----------------------------------------------------------------------
-  //  M in__v() const noexcept { return *this; }
-  //  M adjoint() const noexcept { return *this; }
-  //  auto eigen___val() const noexcept { return 0; }
-  //  auto eigen___vec() const noexcept { return 0; }
-  //  constexpr T det() const noexcept {
-  //    if (is_square()) {
-  //      return 0;
-  //    }
-  //    std::cerr << "Not a square matrix.\n";
-  //    exit(4);
-  //  }
-  //  constexpr T rank() const noexcept { return 0; }
-  // *----------------------------------------------------------------------
-
+  
   /* extract element */
   auto row(auto r) const noexcept {
     if (r > -1 && r < __dim0) {
