@@ -3,11 +3,10 @@
 #include <cmath>
 #include <cstring>
 #include <iostream>
-#include <memory>
 #pragma GCC optimize(3)
 class M {
-  using T = float; // element type   
-  T *v, *begin, *end;
+  using T = float;     // element type
+  T *v, *begin, *end;  // container and reference pointers
   int dim0, dim1, dim; // dimension
 
   /* tools */
@@ -17,7 +16,7 @@ class M {
   constexpr bool is_vec() const noexcept { return std::min(dim0, dim1) == 1; }
   constexpr auto vec_dim() const noexcept {
     if (is_vec())
-      return std::max(dim0, dim1);
+      return dim;
     else {
       std::cerr << "Not a vector!\n";
       exit(1);
@@ -50,10 +49,12 @@ public:
     v = init == 0 ? new T[dim]() : new T[dim];
     begin = v;
     end = begin + dim;
-    auto it = end;
-    do {
-      *--it = init;
-    } while (it > begin);
+    if (init != 0) {
+      auto it = end;
+      do {
+        *--it = init;
+      } while (it > begin);
+    }
   }
   inline M(auto dim0, auto dim1)
       : dim0(dim0), dim1(dim1), v(new T[dim0 * dim1]) {
@@ -62,7 +63,7 @@ public:
     end = begin + dim;
   }
   // debug only
-  M(auto dim0, auto dim1, const std::initializer_list<T> m)
+  M(auto dim0, auto dim1, std::initializer_list<T> m)
       : dim0(dim0), dim1(dim1), v(new T[dim0 * dim1]) {
     dim = dim0 * dim1;
     begin = v;
@@ -71,7 +72,7 @@ public:
     for (auto &i : m)
       *it++ = i;
   }
-  M(const M &m) noexcept {    
+  M(const M &m) noexcept {
     dim0 = m.dim0;
     dim1 = m.dim1;
     dim = m.dim;
@@ -80,7 +81,7 @@ public:
     begin = v;
     end = begin + dim;
   }
-  M(M &&m) noexcept {    
+  M(M &&m) noexcept {
     dim0 = std::move(m.dim0);
     dim1 = std::move(m.dim1);
     dim = std::move(m.dim);
